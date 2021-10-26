@@ -51,7 +51,18 @@ class ApiController extends Controller
         if (!Hash::check($request->password,$user->password)){
             return response()->json(['error'=>'Unauthenticated'],203);
         }
-        return response()->json(['success'=>true,'role'=>$role,'domain' => 3, 'data' => $user],200);
+        if ($user) {
+            if($role == 'admin'){
+                $name = $user->first_name;
+                $domain = 0;
+            }else{
+                $name = $user->name;
+                $domain = $domain_id;
+            }
+            $email    = $user->email;
+            $password = $user->password;
+        }
+        return response()->json(['success'=>true,'role'=>$role,'domain' => $domain, 'name' => $name,'email' => $email, 'password' => $password],200);
 
     }
 }
