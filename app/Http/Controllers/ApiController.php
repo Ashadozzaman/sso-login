@@ -12,6 +12,8 @@ class ApiController extends Controller
       /// login //////
 
     public function login(Request $request){
+
+        //return response()->json($request->all(),203);
         if ($request->backend == 'div') {
             $database = 'np_backend';
             $table    = 'backend_users';
@@ -36,13 +38,13 @@ class ApiController extends Controller
                 }
             }
         }
+
         $params['driver'] = 'mysql';
         $params['host']   = '127.0.0.1';
         $params['database'] = $database;
         $params['username'] = 'root';
         $params['password'] = '';
         $connection = DatabaseConnection::getdbconnection($params);
-
 
         $user = $connection->table($table)->where('email',$request->email)->first();
         if (!$user){
@@ -51,7 +53,18 @@ class ApiController extends Controller
         if (!Hash::check($request->password,$user->password)){
             return response()->json(['error'=>'Unauthenticated'],203);
         }
-        return response()->json(['success'=>true,'role'=>$role,'domain' => 3, 'data' => $user],200);
+        if ($user) {
+            if($role == 'admin'){
+                $name = $user->first_name;
+                $domain = 0;
+            }else{
+                $name = $user->name;
+                $domain = $domain_id;
+            }
+            $email    = $user->email;
+            $password = $user->password;
+        }
+        return response()->json(['success'=>true,'role'=>$role,'domain' => $domain, 'name' => $name,'email' => $email, 'password' => $password],200);
 
     }
 }
