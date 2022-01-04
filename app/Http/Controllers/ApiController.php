@@ -12,52 +12,11 @@ class ApiController extends Controller
       /// login //////
 
     public function login(Request $request){
-        if ($request->backend == 'div') {
-            $database = 'np_backend';
-            $table    = 'backend_users';
-            $role     = 'admin';
-            $host     = '127.0.0.1';
-            $username = 'root';
-            $password = '';
-            if(isset($request->database)){
-                $table = 'users';
-                $role  = 'site';
-                $host     = '127.0.0.1';
-                $username = 'root';
-                $password = '';
-                if($request->database == 'syl'){
-                    $database = '5b8641e5-db8e-4372-a165-bec7b16d28c8';
-                }else if($request->database == 'mym'){
-                    $database = '5b8641e5-db8e-4372-a165-bec7b16d28c8';
-                }else if($request->database == 'khul'){
-                    $database = '5b8641e5-db8e-4372-a165-bec7b16d28c8';
-                }else if($request->database == 'ctg'){
-                    $database = '5b8641e5-db8e-4372-a165-bec7b16d28c8';
-                }else if($request->database == 'dha'){
-                    $database = '5b8641e5-db8e-4372-a165-bec7b16d28c8';
-                }else if($request->database == 'rang'){
-                    $database = '5b8641e5-db8e-4372-a165-bec7b16d28c8';
-                }else if($request->database == 'raj'){
-                    $database = '5b8641e5-db8e-4372-a165-bec7b16d28c8';
-                }
-            }
-        }else if ($request->backend == 'mofa') {
-            $database = 'mofa_backend';
-            $table    = 'backend_users';
-            $role     = 'admin';
-            $host     = '127.0.0.1';
-            $username = 'root';
-            $password = '';
-            if(isset($request->database)){
-                if($request->database == 'mofa' ){
-                    $database = 'ff0c09cb-a4a9-4a77-bb7f-f9b015be439c';
-                    $table = 'users';
-                    $role  = 'site';
-                }
-            }
-        }else{
-            return response()->json(['error'=>'Unauthenticated'],203);
-        }
+        $database = 'np_backend';
+        $table    = 'backend_users';
+        $host     = '127.0.0.1';
+        $username = 'root';
+        $password = '';
 
         $params['driver']   = 'mysql';
         $params['host']     = $host;
@@ -74,18 +33,24 @@ class ApiController extends Controller
         if (!Hash::check($request->password,$user->password)){
             return response()->json(['error'=>'Unauthenticated'],203);
         }
-        if ($user) {
-            if($role == 'admin'){
-                $name   = $user->first_name;
-                $domain = 0;
-            }else{
-                $name   = $user->name;
-                $domain = $user->domain_id;
-            }
-            $email      = $user->email;
-            $password   = $user->password;
-        }
-        return response()->json(['success'=>true,'role'=>$role,'domain' => $domain, 'name' => $name,'email' => $email, 'password' => $password],200);
+        $user_id = $user->id;
+        //get user site
+        $site_users = $connection->table('np_structure_site_user')->where('user_id',$user_id)->get();
+        $site_access_count = count($site_users);
+        $sites = [];
+        foreach($site_users as $key => $site_user){
+            $sites[$key] = $site_user->site_id;
+        }        
+        return response()->json(
+            [
+                'success'=>true,
+                'name' => $user->first_name,
+                'email' => $user->email, 
+                'role'=> $user->role_id,
+                'is_superuser' => $user->is_superuser,
+                'site_access_count' => $site_access_count,
+                'site_ids' =>json_encode($sites),
+            ],200)  ;
 
     }
 }
