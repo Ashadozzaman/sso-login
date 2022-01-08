@@ -87,5 +87,9 @@ class ApiController extends Controller
         }
         return response()->json(['success'=>true,'role'=>$role,'domain' => $domain, 'name' => $name,'email' => $email, 'password' => $password],200);
 
+
+
+
+
     }
 }
